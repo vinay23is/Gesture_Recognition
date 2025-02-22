@@ -1,32 +1,53 @@
-# Gesture-Recognition
-Machine learning model to recognise hand gestures
+# Gesture Recognition using Deep Learning
 
-**Access the Dataset**
+## Project Overview
+This project focuses on building a **3D Convolutional Neural Network (3D-CNN)** to recognize five different hand gestures. The model is trained on a dataset of videos, each containing 30 frames, to accurately classify user gestures. This system is intended for **smart TVs** where users can control functions like increasing/decreasing volume and skipping forward/backward using hand gestures.
 
-the dataset for the project is in a Zip file in this link: https://drive.google.com/uc?id=1ehyrYBQ5rbQQe6yL4XbLWe3FMvuVUGiL
+## Problem Statement
+Imagine working as a data scientist at a **home electronics company** that manufactures smart TVs. You aim to develop a feature that enables users to **control the TV without a remote** using hand gestures. A webcam continuously monitors gestures, and each gesture corresponds to a specific command:
 
+- 👍 **Thumbs Up** → Increase Volume  
+- 👎 **Thumbs Down** → Decrease Volume  
+- 👈 **Left Swipe** → Jump Backward 10 seconds  
+- 👉 **Right Swipe** → Jump Forward 10 seconds  
+- ✋ **Stop** → Pause the Movie  
 
-The zip file contains a 'train' and a 'val' folder with two CSV files for the two folders. These folders are in turn divided into subfolders where each subfolder represents a video of a particular gesture. Each subfolder, i.e. a video, contains 30 frames (or images). Note that all images in a particular video subfolder have the same dimensions but different videos may have different dimensions. Specifically, videos have two types of dimensions - either 360x360 or 120x160 (depending on the webcam used to record the videos). Hence, you will need to do some pre-processing to standardise the videos. 
+## Dataset  
+The dataset consists of a **train** and **validation** set, each containing multiple videos stored as image frames. Each **video folder contains 30 images** of a specific hand gesture. The dataset includes two image resolutions:
+- **360x360**
+- **120x160**
 
-Each row of the CSV file represents one video and contains three main pieces of information - the name of the subfolder containing the 30 images of the video, the name of the gesture and the numeric label (between 0-4) of the video.
+### Dataset Access
+Download the dataset from the following link:  
+[Dataset Link](https://drive.google.com/uc?id=1ehyrYBQ5rbQQe6yL4XbLWe3FMvuVUGiL)
 
-Your task is to train a model on the 'train' folder which performs well on the 'val' folder as well (as usually done in ML projects).
+### CSV File Structure
+Each row in `train.csv` and `val.csv` corresponds to a **video** and contains:
+- **Folder name** (contains 30 images)
+- **Gesture name**
+- **Label (0-4)** representing one of the five gestures
 
-**Problem Statement**
+## Model Architecture
+We experimented with multiple deep learning models, including **Conv3D**, **ConvLSTM2D**, and **TimeDistributed Conv2D with GRU**. The final model uses a **ConvLSTM2D** architecture for improved accuracy.
 
-Imagine you are working as a data scientist at a home electronics company which manufactures state of the art smart televisions. You want to develop a cool feature in the smart-TV that can recognise five different gestures performed by the user which will help users control the TV without using a remote. 
+### Final Model:
+- **TimeDistributed Conv2D Layers** for feature extraction  
+- **Batch Normalization** to improve convergence  
+- **ConvLSTM2D Layer** to capture spatio-temporal information  
+- **Global Average Pooling & Dense Layers** for classification  
+- **Softmax Activation** for predicting one of the five gestures  
 
-The gestures are continuously monitored by the webcam mounted on the TV. Each gesture corresponds to a specific command:
+## Training Strategy
+- **Augmentation:** Applied techniques like edge enhancement, Gaussian blur, and brightness modification.  
+- **Normalization:** Images were resized to **120x120** and pixel values were scaled between **0-1**.  
+- **Optimizer:** Adam with learning rate decay using ReduceLROnPlateau.  
+- **Loss Function:** Categorical Crossentropy.  
 
-Thumbs up:  Increase the volume
-Thumbs down: Decrease the volume
-Left swipe: 'Jump' backwards 10 seconds
-Right swipe: 'Jump' forward 10 seconds  
-Stop: Pause the movie
- 
+## Model Performance
+- Achieved **96% training accuracy** and **95% validation accuracy**.
+- Optimized the model to use **minimum parameters** for real-time performance on edge devices.
 
-Each video is a sequence of 30 frames (or images). 
-
-**Understanding the Dataset**
-
-The training data consists of a few hundred videos categorised into one of the five classes. Each video (typically 2-3 seconds long) is divided into a sequence of 30 frames(images). These videos have been recorded by various people performing one of the five gestures in front of a webcam - similar to what the smart TV will use. 
+## Installation & Dependencies
+1. Install the required libraries:
+   ```bash
+   pip install numpy tensorflow keras matplotlib opencv-python pillow
