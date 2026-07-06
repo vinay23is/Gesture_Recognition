@@ -1,53 +1,33 @@
-# Gesture Recognition using Deep Learning
+# Gesture Recognition
 
-## Project Overview
-This project focuses on building a **3D Convolutional Neural Network (3D-CNN)** to recognize five different hand gestures. The model is trained on a dataset of videos, each containing 30 frames, to accurately classify user gestures. This system is intended for **smart TVs** where users can control functions like increasing/decreasing volume and skipping forward/backward using hand gestures.
+A deep learning project that classifies hand-gesture videos into 5 commands, aimed at a "control your smart TV without a remote" use case.
 
-## Problem Statement
-Imagine working as a data scientist at a **home electronics company** that manufactures smart TVs. You aim to develop a feature that enables users to **control the TV without a remote** using hand gestures. A webcam continuously monitors gestures, and each gesture corresponds to a specific command:
+## What this covers
+Video classification with a CNN + ConvLSTM2D architecture in Keras/TensorFlow: given a short video (30 frames) of a hand gesture, predict which of 5 gestures it is — Thumbs Up (volume up), Thumbs Down (volume down), Left Swipe (rewind 10s), Right Swipe (forward 10s), or Stop (pause). The notebook works through several architecture experiments (Conv3D, TimeDistributed-Conv2D+GRU, TimeDistributed-Conv2D+ConvLSTM2D) before settling on a final model.
 
-- 👍 **Thumbs Up** → Increase Volume  
-- 👎 **Thumbs Down** → Decrease Volume  
-- 👈 **Left Swipe** → Jump Backward 10 seconds  
-- 👉 **Right Swipe** → Jump Forward 10 seconds  
-- ✋ **Stop** → Pause the Movie  
+## Tech Stack
+- Python, Jupyter Notebook
+- **Keras / TensorFlow** — model definition and training (`Sequential`, `Conv2D`, `ConvLSTM2D`, `TimeDistributed`, `BatchNormalization`, `GlobalAveragePooling2D`)
+- **NumPy / PIL** — frame loading, resizing, and preprocessing via a custom generator
+- **Matplotlib** — training/validation loss & accuracy curves
 
-## Dataset  
-The dataset consists of a **train** and **validation** set, each containing multiple videos stored as image frames. Each **video folder contains 30 images** of a specific hand gesture. The dataset includes two image resolutions:
-- **360x360**
-- **120x160**
+## Approach
+- **Data:** train/validation sets of gesture videos, each stored as a folder of 30 image frames at one of two resolutions (360x360 or 120x160); `train.csv`/`val.csv` map each folder to a gesture label (0-4).
+- **Preprocessing:** custom data generator resizes frames to 120x120 and normalizes pixel values to [0, 1]; augmentation (edge enhancement, Gaussian blur, brightness adjustment) applied during training.
+- **Architecture search:** iterated through multiple candidate models (documented as numbered experiments in the notebook) — plain Conv3D, TimeDistributed Conv2D + GRU, and TimeDistributed Conv2D + ConvLSTM2D — before selecting the final one below.
+- **Final model:** `TimeDistributed(Conv2D)` layers for per-frame feature extraction → `BatchNormalization` → `ConvLSTM2D` to capture motion/temporal information across the frame sequence → `GlobalAveragePooling2D` + `Dense` layers → softmax over the 5 gesture classes.
+- **Training:** Adam optimizer, categorical cross-entropy loss, `ReduceLROnPlateau` for learning-rate decay, and `ModelCheckpoint` saving a `.h5` file after every epoch (see `model-00049-0.06883-0.96726-0.13135-0.93750.h5` in this repo).
 
-### Dataset Access
-Download the dataset from the following link:  
-[Dataset Link](https://drive.google.com/uc?id=1ehyrYBQ5rbQQe6yL4XbLWe3FMvuVUGiL)
+## Results
+The checkpoint included in this repo (`model-00049-0.06883-0.96726-0.13135-0.93750.h5`, epoch 49) reports:
+- Training accuracy: **96.7%** (loss 0.069)
+- Validation accuracy: **93.75%** (loss 0.131)
 
-### CSV File Structure
-Each row in `train.csv` and `val.csv` corresponds to a **video** and contains:
-- **Folder name** (contains 30 images)
-- **Gesture name**
-- **Label (0-4)** representing one of the five gestures
-
-## Model Architecture
-We experimented with multiple deep learning models, including **Conv3D**, **ConvLSTM2D**, and **TimeDistributed Conv2D with GRU**. The final model uses a **ConvLSTM2D** architecture for improved accuracy.
-
-### Final Model:
-- **TimeDistributed Conv2D Layers** for feature extraction  
-- **Batch Normalization** to improve convergence  
-- **ConvLSTM2D Layer** to capture spatio-temporal information  
-- **Global Average Pooling & Dense Layers** for classification  
-- **Softmax Activation** for predicting one of the five gestures  
-
-## Training Strategy
-- **Augmentation:** Applied techniques like edge enhancement, Gaussian blur, and brightness modification.  
-- **Normalization:** Images were resized to **120x120** and pixel values were scaled between **0-1**.  
-- **Optimizer:** Adam with learning rate decay using ReduceLROnPlateau.  
-- **Loss Function:** Categorical Crossentropy.  
-
-## Model Performance
-- Achieved **96% training accuracy** and **95% validation accuracy**.
-- Optimized the model to use **minimum parameters** for real-time performance on edge devices.
-
-## Installation & Dependencies
-1. Install the required libraries:
-   ```bash
-   pip install numpy tensorflow keras matplotlib opencv-python pillow
+## Running Locally
+```bash
+git clone https://github.com/vinay23is/Gesture_Recognition.git
+cd Gesture_Recognition
+pip install numpy tensorflow keras matplotlib opencv-python pillow jupyter
+jupyter notebook "Gesture Recognition.ipynb"
+```
+The training/validation video data is not included in this repo (it's a large dataset of per-frame images) — [download it here](https://drive.google.com/uc?id=1ehyrYBQ5rbQQe6yL4XbLWe3FMvuVUGiL). The notebook expects it laid out with a `train.csv`/`val.csv` alongside the frame folders. The included `.h5` file is a trained checkpoint that can be loaded directly with `keras.models.load_model(...)` for inference without retraining.
